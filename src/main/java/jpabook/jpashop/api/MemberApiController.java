@@ -9,10 +9,51 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestController
 @RequiredArgsConstructor
 public class MemberApiController {
     private final MemberService memberService;
+
+    /**
+     * V1: 엔티티를 직접 노출
+     * - API 스펙 변경 시 엔티티 변경 위험
+     * - 엔티티에 프레젠테이션 로직 노출
+     */
+    @GetMapping("/api/v1/members")
+    public List<Member> membersV1() {
+        return memberService.findMembers();
+    }
+
+    /**
+     * V2: DTO로 변환하여 반환
+     * - 엔티티와 API 스펙 분리
+     * - 응답 데이터 구조 제어 가능
+     */
+    @GetMapping("/api/v2/members")
+    public Result membersV2() {
+        List<Member> findMembers = memberService.findMembers();
+        List<MemberDto> collect = findMembers.stream()
+                .map(m -> new MemberDto(m.getName()))
+                .collect(Collectors.toList());
+
+        return new Result(collect.size(), collect);
+    }
+
+    @Data
+    @AllArgsConstructor
+    static class Result<T> {
+        private int count;
+        private T data;
+    }
+
+    @Data
+    @AllArgsConstructor
+    static class MemberDto {
+        private String name;
+    }
 
     /**
      * 엔티티를 RequestBody로 직접 받는 잘못된 예
