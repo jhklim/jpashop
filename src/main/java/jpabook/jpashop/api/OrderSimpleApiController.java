@@ -51,6 +51,21 @@ public class OrderSimpleApiController {
         return result;
     }
 
+    /**
+     * V3: fetch join으로 Member, Delivery를 한 번에 조회
+     * - N+1 문제 해결
+     * - 쿼리 1번으로 조회
+     */
+    @GetMapping("/api/v3/simple-orders")
+    public List<SimpleOrderDto> ordersV3() {
+        List<Order> orders = orderRepository.findAllWithMemberDelivery();
+        List<SimpleOrderDto> result = orders.stream()
+                .map(o -> new SimpleOrderDto(o))
+                .collect(Collectors.toList());
+
+        return result;
+    }
+
     @Data
     static class SimpleOrderDto {
         private Long orderId;
